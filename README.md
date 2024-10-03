@@ -4,7 +4,13 @@ Uses SQLite. Rate limiting is implemented using JavaScript `Map`.
 
 ## Initialize project
 
-Create a GitHub OAuth app. Paste the client ID and secret to a `.env` file.
+Create a GitHub OAuth app with the redirect URI pointed to `/login/github/callback`.
+
+```
+http://localhost:5173/login/github/callback
+```
+
+Paste the client ID and secret to a `.env` file.
 
 ```bash
 GITHUB_CLIENT_ID=""
@@ -22,3 +28,7 @@ Run the application:
 ```
 pnpm dev
 ```
+
+## Notes
+
+- TODO: Update redirect URI
