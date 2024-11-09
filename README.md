@@ -20,7 +20,12 @@ GITHUB_CLIENT_SECRET="
 Create `sqlite.db` and run `setup.sql`.
 
 ```
-sqlite3 sqlite.db
+sqlite3 sqlite.db < setup.sql
+```
+
+Install dependencies: 
+```
+pnpm install
 ```
 
 Run the application:
