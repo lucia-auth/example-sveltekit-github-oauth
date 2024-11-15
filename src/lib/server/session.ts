@@ -4,6 +4,7 @@ import { encodeBase32, encodeHexLowerCase } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";
 
 import type { RequestEvent } from "@sveltejs/kit";
+import type { User } from "$lib/server/user";
 
 const db = new PrismaClient();
 
@@ -16,13 +17,20 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 		}
 	});
 
-	let user = null;
+	let user: User | null = null;
 	if (session) {
-		user = await db.user.findFirst({
+		const dbUser = await db.user.findFirst({
 			where: {
 				id: session.user_id
 			}
 		});
+
+		user = dbUser ? {
+			id: dbUser.id,
+			email: dbUser.email,
+			gitHubId: dbUser.github_id,
+			username: dbUser.username
+		} : null;
 
 		if (Date.now() >= session.expires_at) {
 			db.session.delete({
@@ -33,6 +41,7 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 			//db.execute("DELETE FROM session WHERE id = ?", [session.id]);
 			//return { session: null, user: null };
 		}
+
 		if (Date.now() >= session.expires_at) {
 			db.session.update({
 				where: {
@@ -44,7 +53,14 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 			})
 		}
 	}
-	return { session, user };
+
+	const mappedSession = session ? {
+		id: session.id,
+		userId: session.user_id,
+		expiresAt: Number(session.expires_at)
+	} : null;
+
+	return { session: mappedSession, user };
 }
 
 export async function invalidateSession(sessionId: string): Promise<void> {
@@ -115,4 +131,4 @@ export interface Session {
 	userId: string;
 }
 
-type SessionValidationResult = { session: any ; user: any };
+type SessionValidationResult = { session: Session | null ; user: User | null };

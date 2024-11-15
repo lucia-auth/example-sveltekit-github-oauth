@@ -46,5 +46,5 @@ export interface User {
 	id: string;
 	email: string;
 	gitHubId: number;
-	username: string;
+	username: string | null;
 }
