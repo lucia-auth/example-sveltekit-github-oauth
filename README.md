@@ -118,3 +118,7 @@ type SessionValidationResult = { session: any ; user: any };
 ## Notes
 
 - TODO: Update redirect URI
+- To load environment variables, run 
+```bash 
+  npx prisma generate
+  ``` 
