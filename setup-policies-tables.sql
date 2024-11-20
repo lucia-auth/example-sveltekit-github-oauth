@@ -7,41 +7,51 @@ Date: 20241114
 USE msbuxley;
 GO
 
--- create our policies table
+ALTER TABLE [dbo].[policies] DROP CONSTRAINT [FK_policies_createdby]
+GO
 
-/*
-DECLARE @today DATETIME = GETUTCDATE();
---get YYYYMMDD as INT
-SELECT CAST(FORMAT(@today,'yyyyMMdd') as INT); 
-*/
+/****** Object:  Table [dbo].[policies]    Script Date: 11/20/2024 10:13:26 AM ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[policies]') AND type in (N'U'))
+DROP TABLE [dbo].[policies]
+GO
 
-CREATE TABLE [dbo].[policies]
+/****** Object:  Table [dbo].[policies]    Script Date: 11/20/2024 10:13:26 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[policies](
+	[id] [uniqueidentifier] NOT NULL,
+	[name] [nvarchar](256) NOT NULL,
+	[abbreviation] [nvarchar](64) NOT NULL,
+	[created] [int] NOT NULL,
+	[createdby] [uniqueidentifier] NOT NULL,
+	[modified] [int] NULL,
+	[modifiedby] [uniqueidentifier] NULL,
+	[lastrun] [int] NULL,
+	[retired] [int] NULL,
+ CONSTRAINT [PK_policies] PRIMARY KEY NONCLUSTERED 
 (
-	id UNIQUEIDENTIFIER DEFAULT NEWSEQUENTIALID(),
-	CONSTRAINT PK_policies PRIMARY KEY NONCLUSTERED (id),
-	name NVARCHAR(256) NOT NULL,
-	abbr NVARCHAR(64) NOT NULL,
-	CONSTRAINT AK_abbreviation UNIQUE(abbr),
-	created INT NOT NULL,
-	createdby UNIQUEIDENTIFIER NOT NULL
-	CONSTRAINT FK_policies_createdby FOREIGN KEY (createdby)
-		REFERENCES [dbo].[user](id),
-	modified INT NULL,
-	modifiedby UNIQUEIDENTIFIER NULL,
-	lastrun INT NULL,
-	retired INT NULL
-);
+	[id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+ CONSTRAINT [AK_abbreviation] UNIQUE NONCLUSTERED 
+(
+	[abbreviation] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
 
-CREATE CLUSTERED INDEX abbr_index ON [dbo].[policies](abbr)
+ALTER TABLE [dbo].[policies] ADD  DEFAULT (newsequentialid()) FOR [id]
+GO
 
-/*
--- create our policy_details table
+ALTER TABLE [dbo].[policies]  WITH CHECK ADD  CONSTRAINT [FK_policies_createdby] FOREIGN KEY([createdby])
+REFERENCES [dbo].[user] ([id])
+GO
 
-CREATE TABLE [dbo].[policy_details] (
-	id nvarchar(64) NOT NULL,
-	CONSTRAINT PK_policy_details PRIMARY KEY CLUSTERED (id),
-);
-*/
+ALTER TABLE [dbo].[policies] CHECK CONSTRAINT [FK_policies_createdby]
+GO
 
 /**
 
@@ -50,21 +60,6 @@ CREATE TABLE [dbo].[policy_details] (
 SELECT * from [dbo].[policies]
 
 SELECT * FROM [dbo].[policy_details]
-
-**/
-
-/**
-
--- Tear down and restart:
-
-DROP INDEX IF EXISTS github_id_index ON [dbo].[user];
-
---drop session first to remove foreign key contraint on user table
-
-DROP TABLE IF EXISTS [dbo].[session];
-
-DROP TABLE IF EXISTS [dbo].[user];
-
 
 **/
 
