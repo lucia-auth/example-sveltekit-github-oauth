@@ -107,9 +107,14 @@ npm install @oslojs/encoding @oslojs/crypto
 
 - ported `/lib/server/user.ts` and `/lib/server/session.ts` to use prisma.
 - Used some bad *any* types to get compile to succeed at
+
+<strike>
 ```ts
 type SessionValidationResult = { session: any ; user: any };
 ```
+</strike>
+
+`@WTLccochran` fixed with [PR 10](https://github.com/WonderTaxLabs/example-sveltekit-github-oauth/pull/10);
 
 - Got Sever-side debugging well in hand now, but hate the laptop's muti-use function keys - can't easily use F10 (Step Over) & F11 (Step into) :angry:
 
