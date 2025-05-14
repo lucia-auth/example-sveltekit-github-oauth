@@ -1,4 +1,6 @@
+import { dev } from "$app/environment";
 import { github } from "$lib/server/oauth";
+import { redirect } from "@sveltejs/kit";
 import { generateState } from "arctic";
 
 import type { RequestEvent } from "./$types";
@@ -8,17 +10,10 @@ export function GET(event: RequestEvent): Response {
 	const url = github.createAuthorizationURL(state, ["user:email"]);
 
 	event.cookies.set("github_oauth_state", state, {
-		httpOnly: true,
 		maxAge: 60 * 10,
-		secure: import.meta.env.PROD,
-		path: "/",
-		sameSite: "lax"
+		secure: !dev || event.url.protocol === "https",
+		path: "/"
 	});
 
-	return new Response(null, {
-		status: 302,
-		headers: {
-			Location: url.toString()
-		}
-	});
+	redirect(307, url.toString());
 }

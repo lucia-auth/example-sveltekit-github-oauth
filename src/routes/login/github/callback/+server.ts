@@ -1,5 +1,6 @@
 import { github } from "$lib/server/oauth";
 import { ObjectParser } from "@pilcrowjs/object-parser";
+import { error, redirect } from "@sveltejs/kit";
 import { createUser, getUserFromGitHubId } from "$lib/server/user";
 import { createSession, generateSessionToken, setSessionTokenCookie } from "$lib/server/session";
 
@@ -12,13 +13,13 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	const state = event.url.searchParams.get("state");
 
 	if (storedState === null || code === null || state === null) {
-		return new Response("Please restart the process.", {
-			status: 400
+		error(400, {
+			message: "Please restart the process."
 		});
 	}
 	if (storedState !== state) {
-		return new Response("Please restart the process.", {
-			status: 400
+		error(400, {
+			message: "Please restart the process."
 		});
 	}
 
@@ -26,8 +27,8 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	try {
 		tokens = await github.validateAuthorizationCode(code);
 	} catch (e) {
-		return new Response("Please restart the process.", {
-			status: 400
+		error(400, {
+			message: "Please restart the process."
 		});
 	}
 
@@ -47,12 +48,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 		const sessionToken = generateSessionToken();
 		const session = createSession(sessionToken, existingUser.id);
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);
-		return new Response(null, {
-			status: 302,
-			headers: {
-				Location: "/"
-			}
-		});
+		redirect(307, "/");
 	}
 
 	const emailListRequest = new Request("https://api.github.com/user/emails");
@@ -60,8 +56,8 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	const emailListResponse = await fetch(emailListRequest);
 	const emailListResult: unknown = await emailListResponse.json();
 	if (!Array.isArray(emailListResult) || emailListResult.length < 1) {
-		return new Response("Please restart the process.", {
-			status: 400
+		error(400, {
+			message: "Please restart the process."
 		});
 	}
 	let email: string | null = null;
@@ -74,8 +70,8 @@ export async function GET(event: RequestEvent): Promise<Response> {
 		}
 	}
 	if (email === null) {
-		return new Response("Please verify your GitHub email address.", {
-			status: 400
+		error(400, {
+			message: "Please verify your GitHub email address."
 		});
 	}
 
@@ -83,10 +79,5 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	const sessionToken = generateSessionToken();
 	const session = createSession(sessionToken, user.id);
 	setSessionTokenCookie(event, sessionToken, session.expiresAt);
-	return new Response(null, {
-		status: 302,
-		headers: {
-			Location: "/"
-		}
-	});
+	redirect(307, "/");
 }
